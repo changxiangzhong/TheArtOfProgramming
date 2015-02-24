@@ -25,12 +25,12 @@ extern void bt_node_destroy(bt_node* const this);
  * Note! this method is to construct a complete binary tree!
  */
 extern bt_node* bt_comp_tree_init(const int len, const int *const values);
-extern void bt_tree_print(const bt_node * const root, char * const prefix, bool is_tail);
-extern void bt_tree_destroy(const bt_node* root);
+extern void bt_tree_print(const bt_node * const this, char * const prefix);
+extern void bt_tree_destroy(const bt_node* this);
 /*
  * To determine if the tree is a binary search tree
  */
-extern bool bt_tree_is_BST(const bt_node * const root);
+extern bool bt_tree_is_BST(const bt_node * const this);
 
 #endif
 

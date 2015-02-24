@@ -5,11 +5,21 @@
 #include <stdbool.h>
 #include "binary_tree.h"
 
-inline static bool _is_leaf(const bt_node *const node)
+inline static bool _is_leaf(const bt_node *const this)
 {
-	return node->left == NULL && node->right == NULL;
+	return this->left == NULL && this->right == NULL;
 }
 
+inline static bool _left_child_of(const bt_node *this, const bt_node *ancestor)
+{
+	assert(this != NULL && ancestor != NULL);
+	if (ancestor->left == this)
+		return true;
+	else if (ancestor->right == this)
+		return false;
+	else 
+		assert(0);
+}
 /* 
  * In general, constructor should be responsible for 
  * 1. allocate/new heap space for "value pointers"
@@ -89,61 +99,119 @@ bt_node* bt_comp_tree_init(const int len, const int *const values)
 	return root;
 }
 
-void bt_tree_destroy(const bt_node* root)
+void bt_tree_destroy(const bt_node* this)
 {
-	if (root -> left != NULL)
-		bt_tree_destroy(root -> left);
+	if (this -> left != NULL)
+		bt_tree_destroy(this -> left);
 
-	if (root -> right != NULL)
-		bt_tree_destroy(root -> right);
+	if (this -> right != NULL)
+		bt_tree_destroy(this -> right);
 
-	free(root->value);
-	free((void*)root);
+	free(this->value);
+	free((void*)this);
 }
 
-bool bt_tree_is_BST(const bt_node * const root)
+/*
+ * @this - which subtree we are investigating
+ * @ancestor - the ancestor of this
+ */
+bool _bt_tree_is_BST(const bt_node * const this, const bt_node * const ancestor)
 {
 	bool ret = true;
-	assert(root != NULL);
+	assert(this != NULL);
 
-	debug_printf("this->value = %d, this->left->value = %d, this->right->value = %d\n", 
-				*root->value, 
-				root->left == NULL? -1: *root->left->value,
-				root->right == NULL? -1: *root->right->value);
+	debug_printf("ancestor->value=%d, this->value = %d, this->left->value = %d, this->right->value = %d\n", 
+				ancestor==NULL? -1: *ancestor->value,
+				*this->value, 
+				this->left == NULL? -1: *this->left->value,
+				this->right == NULL? -1: *this->right->value);
 
-	if (root->left != NULL) {
-		if (*root->left->value < *root->value) {
-			if (!_is_leaf(root->left)) {
-				ret = bt_tree_is_BST(root->left);
+	if (this->left != NULL) {
+		if (*this->left->value < *this->value) {
+			if (!_is_leaf(this->left)) {
+				ret = _bt_tree_is_BST(this->left, this);
 			}
 		} else {
 			ret = false;
 			debug_printf("left.value >= this.value\n");
 		}
+
+		 
+		/* 		(5)		<--ancestor
+		 * 		  \
+		 * 		  (13)	<--this
+		 * 		   /
+		 * 		 (4)
+		 */
+		if (ancestor != NULL && !_left_child_of(this, ancestor)) {
+			if (*ancestor->value > *this->left->value) {
+				ret = false;
+				debug_printf("\n(%d)\n  \\\n  (%d)\n   /\n (%d)\n",
+						*ancestor->value,
+						*this->value,
+						*this->left->value);
+			}
+		}
+
 	}
 
 	if (!ret)
 		return ret;
 
-	if (root->right != NULL) {
-		if (*root->right->value > *root->value) {
-			if (!_is_leaf(root->right)) {
-				ret = bt_tree_is_BST(root->right);
+	if (this->right != NULL) {
+		if (*this->right->value > *this->value) {
+			if (!_is_leaf(this->right)) {
+				ret = _bt_tree_is_BST(this->right, this);
 			}
 		} else {
 			ret = false;
 			debug_printf("right.value <= this.value\n");
 		}
+		/* 		(5)		<--ancestor
+		 *		/
+		 * 	  (3)		<--this
+		 * 	    \
+		 * 	    (6)
+		 */
+		if (ancestor != NULL && _left_child_of(this, ancestor)) {
+			if(*this->right->value > *ancestor->value) {
+				ret = false;
+				debug_printf("\n  (%d)\n /\n(%d)\n \\\n (%d)\n",
+						*ancestor->value,
+						*this->value,
+						*this->right->value);
+			}
+		}
 	}
-
 	return ret;
+}
+
+
+/*
+ * Must take the following case into consideration
+ * A)		(5)
+ * 			/
+ * 		  (3)
+ * 		    \
+ * 		    (6)
+ *
+ * B)
+ *  		(5)
+ *  		  \
+ *  		  (13)
+ *  		   /
+ *  		 (4)
+ */
+bool bt_tree_is_BST(const bt_node * const this)
+{
+	return _bt_tree_is_BST(this, NULL);
 }
 
 /*
  * Modified from http://stackoverflow.com/questions/4965335/how-to-print-binary-tree-diagram/8948691#8948691
  * Adapted from Vasya Novikov's solution
  */
-void bt_tree_print(const bt_node * const this, char * const prefix, bool is_tail)
+static void _bt_tree_print(const bt_node * const this, char * const prefix, bool is_tail)
 {
 	char *buf; 
 	assert(this != NULL);
@@ -153,13 +221,17 @@ void bt_tree_print(const bt_node * const this, char * const prefix, bool is_tail
 	strncpy(buf, prefix, strlen(prefix));
 	strncpy(buf + strlen(buf), (is_tail ? "    " : "│   "), 4);
 	if (this->left != NULL) 
-		bt_tree_print(this->left, buf, 0); 
+		_bt_tree_print(this->left, buf, false); 
 	
 
 	if (this->right != NULL) 
-		bt_tree_print(this->right, buf, 1);
+		_bt_tree_print(this->right, buf, true);
 
 	free(buf);	
 	
 }
 
+void bt_tree_print(const bt_node * const this, char * const prefix)
+{
+	_bt_tree_print(this, prefix, true);
+}

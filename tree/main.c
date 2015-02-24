@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
 		val[i] = atoi(argv[i+1]);
 
 	bt_node* root = bt_comp_tree_init(argc - 1, val);
-	bt_tree_print(root, (char * const)"", true);
+	bt_tree_print(root, (char * const)"");
 	printf("This tree is %sa Binary Search Tree\n", bt_tree_is_BST(root)?"":"NOT ");
 	bt_tree_destroy(root);
 	free(val);
