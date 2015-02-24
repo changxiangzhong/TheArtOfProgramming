@@ -2,7 +2,13 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
+#include <stdbool.h>
 #include "binary_tree.h"
+
+inline static bool _is_leaf(const bt_node *const node)
+{
+	return node->left == NULL && node->right == NULL;
+}
 
 /* 
  * In general, constructor should be responsible for 
@@ -95,11 +101,49 @@ void bt_tree_destroy(const bt_node* root)
 	free((void*)root);
 }
 
+bool bt_tree_is_BST(const bt_node * const root)
+{
+	bool ret = true;
+	assert(root != NULL);
+
+	debug_printf("this->value = %d, this->left->value = %d, this->right->value = %d\n", 
+				*root->value, 
+				root->left == NULL? -1: *root->left->value,
+				root->right == NULL? -1: *root->right->value);
+
+	if (root->left != NULL) {
+		if (*root->left->value < *root->value) {
+			if (!_is_leaf(root->left)) {
+				ret = bt_tree_is_BST(root->left);
+			}
+		} else {
+			ret = false;
+			debug_printf("left.value >= this.value\n");
+		}
+	}
+
+	if (!ret)
+		return ret;
+
+	if (root->right != NULL) {
+		if (*root->right->value > *root->value) {
+			if (!_is_leaf(root->right)) {
+				ret = bt_tree_is_BST(root->right);
+			}
+		} else {
+			ret = false;
+			debug_printf("right.value <= this.value\n");
+		}
+	}
+
+	return ret;
+}
+
 /*
  * Modified from http://stackoverflow.com/questions/4965335/how-to-print-binary-tree-diagram/8948691#8948691
  * Adapted from Vasya Novikov's solution
  */
-void bt_tree_print(const bt_node * const this, char * const prefix, int is_tail)
+void bt_tree_print(const bt_node * const this, char * const prefix, bool is_tail)
 {
 	char *buf; 
 	assert(this != NULL);

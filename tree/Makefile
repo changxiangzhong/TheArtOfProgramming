@@ -1,5 +1,5 @@
-CC=gcc
-CFLAGS=-I. -g -Wall 
+CC=c99
+CFLAGS=-I. -g -Wall -D DEBUG
 LDFLAGS=
 DEPS=binary_tree.h
 OBJ=binary_tree.o main.o
