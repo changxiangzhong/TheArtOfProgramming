@@ -19,6 +19,9 @@ inline static bool _left_child_of(const bt_node *this, const bt_node *ancestor)
 		return false;
 	else 
 		assert(0);
+
+	// unreachable code
+	return false;
 }
 /* 
  * In general, constructor should be responsible for 
@@ -111,15 +114,11 @@ void bt_tree_destroy(const bt_node* this)
 	free((void*)this);
 }
 
-/*
- * @this - which subtree we are investigating
- * @ancestor - the ancestor of this
- */
-bool _bt_tree_is_BST(const bt_node * const this, const bt_node * const ancestor)
+static bool _bt_tree_is_BST(const bt_node * const this, const bt_node * const ancestor)
 {
-	bool ret = true;
-	assert(this != NULL);
-
+	if (this == NULL)
+		return true;
+	
 	debug_printf("ancestor->value=%d, this->value = %d, this->left->value = %d, this->right->value = %d\n", 
 				ancestor==NULL? -1: *ancestor->value,
 				*this->value, 
@@ -127,45 +126,31 @@ bool _bt_tree_is_BST(const bt_node * const this, const bt_node * const ancestor)
 				this->right == NULL? -1: *this->right->value);
 
 	if (this->left != NULL) {
-		if (*this->left->value < *this->value) {
-			if (!_is_leaf(this->left)) {
-				ret = _bt_tree_is_BST(this->left, this);
-			}
-		} else {
-			ret = false;
-			debug_printf("left.value >= this.value\n");
+		if (*this->value < *this->left->value) {
+			debug_printf("\n  (%d)\n   /\n (%d)\n", *this->value, *this->left->value);
+			return false;
 		}
 
-		 
 		/* 		(5)		<--ancestor
 		 * 		  \
 		 * 		  (13)	<--this
 		 * 		   /
 		 * 		 (4)
 		 */
-		if (ancestor != NULL && !_left_child_of(this, ancestor)) {
-			if (*ancestor->value > *this->left->value) {
-				ret = false;
-				debug_printf("\n(%d)\n  \\\n  (%d)\n   /\n (%d)\n",
-						*ancestor->value,
-						*this->value,
-						*this->left->value);
-			}
+		if (ancestor != NULL &&
+				!_left_child_of(this, ancestor) &&
+				*this->left->value < *ancestor->value) {
+			debug_printf("\n(%d)\n  \\\n  (%d)\n   /\n (%d)\n", *ancestor->value, *this->value,	*this->left->value);
+			return false;
 		}
-
 	}
 
-	if (!ret)
-		return ret;
-
-	if (this->right != NULL) {
-		if (*this->right->value > *this->value) {
-			if (!_is_leaf(this->right)) {
-				ret = _bt_tree_is_BST(this->right, this);
-			}
-		} else {
-			ret = false;
-			debug_printf("right.value <= this.value\n");
+	if (this->right != NULL) { 
+		if (*this->right->value < *this->value) {
+			debug_printf("\n(%d)\n  \\\n  (%d)\n",
+					*this->value,
+					*this->right->value);
+			return false;
 		}
 		/* 		(5)		<--ancestor
 		 *		/
@@ -173,17 +158,20 @@ bool _bt_tree_is_BST(const bt_node * const this, const bt_node * const ancestor)
 		 * 	    \
 		 * 	    (6)
 		 */
-		if (ancestor != NULL && _left_child_of(this, ancestor)) {
-			if(*this->right->value > *ancestor->value) {
-				ret = false;
-				debug_printf("\n  (%d)\n /\n(%d)\n \\\n (%d)\n",
-						*ancestor->value,
-						*this->value,
-						*this->right->value);
-			}
+		if (ancestor != NULL &&
+				_left_child_of(this, ancestor) && 
+				*ancestor->value < *this->right->value) {
+			debug_printf("\n  (%d)\n /\n(%d)\n \\\n (%d)\n", *ancestor->value, *this->value, *this->right->value);
+			return false;
 		}
+
 	}
-	return ret;
+
+	if (!_bt_tree_is_BST(this->left, this) || !_bt_tree_is_BST(this->right, this)) {
+		return false;
+	}
+
+	return true;
 }
 
 
@@ -235,3 +223,4 @@ void bt_tree_print(const bt_node * const this, char * const prefix)
 {
 	_bt_tree_print(this, prefix, true);
 }
+
