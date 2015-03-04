@@ -1,8 +1,8 @@
 CC=c99
 CFLAGS=-I. -g -Wall -D DEBUG
 LDFLAGS=
-DEPS=binary_tree.h
-OBJ=binary_tree.o main.o
+DEPS=binary_tree.h stack.h
+OBJ=binary_tree.o main.o stack.o
 EXECUTABLE=tree
 
 dist: $(OBJ)

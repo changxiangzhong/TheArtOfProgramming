@@ -5,6 +5,36 @@
 #include <stdbool.h>
 #include "binary_tree.h"
 
+static void _bt_tree_depth(const bt_node * const this, int *const depth, int *const max)
+{
+}
+
+int bt_tree_depth(const bt_node * const this)
+{
+	if (this == NULL)
+		return 0;
+
+	int depth = 0, max=0;
+	max = 0;
+	_bt_tree_depth(this, &depth, &max);
+	return depth;
+}
+
+
+int bt_tree_in_order_traverse(const bt_node * const this, int * const buf, const int buf_sz)
+{
+	int used = 0;
+	if (this->left != NULL)
+		used = bt_tree_in_order_traverse(this->left, buf + used, buf_sz - used);
+
+	buf[used++] = *this->value;
+
+	if (this->right != NULL)
+		used += bt_tree_in_order_traverse(this->right, buf + used, buf_sz - used);
+
+	return used;
+}
+
 inline static bool _is_leaf(const bt_node *const this)
 {
 	return this->left == NULL && this->right == NULL;
@@ -47,6 +77,38 @@ void bt_node_destroy(bt_node* const this)
 	free(this->value);
 }
 
+bt_node* bt_tree_init(const int len, const int *const values)
+{
+	assert(len > 0 && values != NULL);
+	int i;
+	bt_node* root;
+	bt_node** buf = calloc(sizeof(bt_node*), (size_t)len);
+
+	for(i = 0; i < len; i++) {
+		if (values[i] < 0)
+			buf[i] = NULL;
+
+		buf[i] = malloc(sizeof(bt_node));
+		bt_node_init(buf[i], values[i], NULL, NULL);
+	}
+
+	for(i = 0; i < len; i++) {
+		if (buf[i] == NULL)
+			continue;
+
+		int left_off = 2 * i + 1;
+		if (left_off < len)
+			buf[i]->left = buf[left_off];
+
+		int right_off = 2 * i + 2;
+		if (right_off < len)
+			buf[i]->right = buf[right_off];
+	}
+
+	root = buf[0];
+	free(buf);
+	return root;	
+}
 /*
  * Initialize a 'complete tree' with the given values in an array. In a binary tree, each level could accommodate 2^n 
  * of elements. To calculate the position of a N'th element(array start from 0). For any N>0
@@ -174,22 +236,6 @@ static bool _bt_tree_is_BST(const bt_node * const this, const bt_node * const an
 	return true;
 }
 
-
-/*
- * Must take the following case into consideration
- * A)		(5)
- * 			/
- * 		  (3)
- * 		    \
- * 		    (6)
- *
- * B)
- *  		(5)
- *  		  \
- *  		  (13)
- *  		   /
- *  		 (4)
- */
 bool bt_tree_is_BST(const bt_node * const this)
 {
 	return _bt_tree_is_BST(this, NULL);
