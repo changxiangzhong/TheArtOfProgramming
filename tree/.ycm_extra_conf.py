@@ -54,7 +54,7 @@ flags = [
 '-Wno-long-long',
 '-Wno-variadic-macros',
 '-fexceptions',
-'-DNDEBUG',
+'-DDEBUG',
 '-DUSE_CLANG_COMPLETER',
 '-std=c99',
 # THIS IS IMPORTANT! Without a "-std=" flag, clang won't know which
@@ -68,7 +68,6 @@ flags = [
 # language that the files to be compiled are written in. This is mostly
 # relevant for c++ headers.
 # For a C project, you would set this to 'c' instead of 'c++'.
-'-D', 'DEBUG'
 '-x', 'c',
 '-isystem', '/usr/include',
 '-I', '.',

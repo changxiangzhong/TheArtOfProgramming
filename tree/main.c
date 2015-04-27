@@ -16,6 +16,20 @@ int main(int argc, char *argv[])
 	bt_node* root = bt_comp_tree_init(argc - 1, val);
 	bt_tree_print(root, (char * const)"");
 	printf("This tree is %sa Binary Search Tree\n", bt_tree_is_BST(root)?"":"NOT ");
+
+	int *buff = calloc(sizeof(int), (unsigned) 30);
+
+	bt_tree_in_order_traverse(root, buff, 30);
+
+	for (i = 0; i < 30; i++) {
+		if(buff[i] == 0)
+			break;
+		printf("%d", buff[i]);
+	}
+
+	free(buff);
+
+
 	bt_tree_destroy(root);
 	free(val);
 	return 1;
