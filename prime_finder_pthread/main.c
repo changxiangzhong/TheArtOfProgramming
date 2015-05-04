@@ -13,23 +13,6 @@
 #include "util.h"
 #include "array.h"
 
-static void* worker_thread(void* param)
-{
-	task_queue *tq = (task_queue*)param;
-	range r;
-	r.len = 1;
-	util_printf("%s", "Thread started!\n");
-	while(true) {
-		r = tq_get_task(tq);
-		if (r.len <= 0)
-			break;
-		util_printf("Get task from (%" PRIu64 ", %" PRIu64 "]\n", r.start - r.len, r.start );
-		sleep(1);
-	};
-
-	return NULL;
-}
-
 static void find_prime_nbr(uint64_t min, uint64_t max, array * const ret)
 {
 	uint64_t iter = max;
@@ -46,24 +29,43 @@ static void find_prime_nbr(uint64_t min, uint64_t max, array * const ret)
 		}
 
 		if (i == sqrt_max) {
-			util_printf("Found prime number: %" PRIu64 "\n", pthread_self());
-			array_append(ret, iter);
+			util_printf("Found prime number: %" PRIu64 "\n", iter);
+//			array_append(ret, iter);
 		} else 
 			;
 
 		iter%2? iter-=2: iter--;
 	}
 
-	util_printf("%s", "===> Done.\n" );
+	util_printf("%s", "===> Cycle done.\n" );
 
 }
+
+static void* worker_thread(void* param)
+{
+	task_queue *tq = (task_queue*)param;
+	range r;
+	r.len = 1;
+	util_printf("%s", "Thread started!\n");
+	while(true) {
+		r = tq_get_task(tq);
+		if (r.len <= 0)
+			break;
+//		util_printf("Get task from (%" PRIu64 ", %" PRIu64 "]\n", r.start - r.len, r.start );
+		find_prime_nbr(r.start - r.len, r.start, NULL);
+		sleep(1);
+	};
+
+	return NULL;
+}
+
 
 int main(int argc, char* argv[])
 {
 	int i;
 	uint8_t cpu_nbr = (uint8_t) sysconf(_SC_NPROCESSORS_ONLN);
 	task_queue tq;
-	uint64_t start = UINT64_MAX, end = 0;
+	uint64_t start = UINT64_MAX, end = UINT64_MAX - 1024;
 	uint32_t pace = 100;
 
 	printf("argc == %d\n", argc);
