@@ -1,4 +1,8 @@
 .ycm_extra_conf.pyc
 *.out
 core
+tags
+*.swp
+*.o
+find_prime_nbr
 
