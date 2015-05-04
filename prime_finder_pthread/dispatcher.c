@@ -16,7 +16,7 @@ range tq_get_task(task_queue *this)
 	range r;
 	pthread_mutex_lock(&this->mutex);
 	r.start = this->current;
-	r.len = this->current - this->pace > this->end ? this->pace: this->current - this->pace;
+	r.len = this->current > this->end + this->pace? this->pace: this->current - this->end;
 	this->current -= r.len;
 	pthread_mutex_unlock(&this->mutex);
 	return r;
