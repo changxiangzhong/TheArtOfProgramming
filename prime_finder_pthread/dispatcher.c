@@ -9,10 +9,8 @@ void tq_init(task_queue *this, uint64_t max, uint64_t min, uint32_t pace)
 	this->end = min;
 	this->pace = pace;
 #ifdef _USE_SPINLOCK
-	util_printf("%s\n", "use spin lock");
 	pthread_spin_init(&this->spinlock, PTHREAD_PROCESS_PRIVATE);
 #else
-	util_printf("%s\n", "use mutex");
 	pthread_mutex_init(&this->mutex, NULL);
 #endif
 }

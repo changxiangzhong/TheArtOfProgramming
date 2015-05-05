@@ -49,9 +49,8 @@ static void find_prime_nbr(uint64_t min, uint64_t max, array * const ret)
 		}
 
 		if (i == sqrt_max) {
-			;
 //			util_printf("Found prime number: %" PRIu64 "\n", iter);
-//			array_append(ret, iter);
+			array_append(ret, iter);
 		} else 
 			;
 
@@ -106,7 +105,7 @@ int main(int argc, char* argv[])
 		sscanf(argv[4], "%" PRIu32, &cpu_nbr);
 	}
 
-	printf("start=%" PRIu64 ", end=%" PRIu64 ", pace=%" PRIu32 ", threads=%" PRIu32 "\n", start, end, pace, cpu_nbr);
+	util_printf("start=%" PRIu64 ", end=%" PRIu64 ", pace=%" PRIu32 ", threads=%" PRIu32 "\n", start, end, pace, cpu_nbr);
 	
 	prime_nbr_count = estimate_prime_nbr_amount(end, start);
 	array_init(&result, prime_nbr_count);
@@ -129,6 +128,12 @@ int main(int argc, char* argv[])
 
 	for (i = 0; i < cpu_nbr; i++) 
 		pthread_join(workers[i], NULL);
+
+	util_printf("%s", "All done, print result\n");
+
+//	for (i = 0; i < result.len; i++)
+//		printf("%" PRIu64 "\n", result.array[i]);
+
 	tq_destroy(&tq);
 	array_destroy(&result);
 	return 0;

@@ -55,7 +55,6 @@ flags = [
 '-fexceptions',
 '-DNDEBUG',
 '-DUSE_CLANG_COMPLETER',
-'-D_USE_SPINLOCK',
 '-std=gnu99',
 # THIS IS IMPORTANT! Without a "-std=" flag, clang won't know which
 # language to use when compiling headers. So it will guess. Badly. So C++
