@@ -1,5 +1,6 @@
-CC=c99
-CFLAGS=-I. -g -Wall -D DEBUG
+CC=gcc
+# CFLAGS=-I. -g -Wall -DDEBUG -std=c99 -D_USE_SPINLOCK
+CFLAGS=-I. -g -Wall -DDEBUG -std=gnu99 
 LDFLAGS= -lm -lpthread
 DEPS=dispatcher.h util.h array.h
 OBJ=dispatcher.o main.o util.o array.o
