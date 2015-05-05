@@ -21,3 +21,8 @@ range tq_get_task(task_queue *this)
 	pthread_mutex_unlock(&this->mutex);
 	return r;
 }
+
+void tq_destroy(task_queue *this)
+{
+	pthread_mutex_destroy(&this->mutex);
+}

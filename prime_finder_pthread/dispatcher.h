@@ -28,4 +28,6 @@ extern void tq_init(task_queue *this, uint64_t max, uint64_t min, uint32_t pace)
 
 extern range tq_get_task(task_queue *this); 
 
+extern void tq_destroy(task_queue *this);
+
 #endif

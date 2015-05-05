@@ -1,12 +1,14 @@
 #ifndef __ARRAY_H__
 #define __ARRAY_H__
 #include <stdint.h>
+#include <pthread.h>
 
 typedef struct 
 {
 	uint64_t *array;
 	uint32_t len;
 	uint32_t capacity;
+	pthread_mutex_t mutex;
 } array;
 
 extern void array_init(array * const this, uint32_t capacity);

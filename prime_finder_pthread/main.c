@@ -13,11 +13,31 @@
 #include "util.h"
 #include "array.h"
 
+typedef struct{
+	task_queue *tq;
+	array *result;
+}thread_params;
+
+// Based upon Dusart 99, calculate the upper bound of the prime number amount in range [min, max]
+static uint32_t estimate_prime_nbr_amount(uint64_t min, uint64_t max)
+{
+	// range0: [0, max], range1: [0, min}
+	double range0, range1;
+	assert(min < max);
+
+	range0 = ceil(max/log(max) * (1 + 1.2762/log(max)));
+	range1 = floor(max/log(min) * (1 + 1.2762/log(min)));
+
+	return (uint32_t)(range0 - range1);
+}
+
 static void find_prime_nbr(uint64_t min, uint64_t max, array * const ret)
 {
 	uint64_t iter = max;
 
-	util_printf("Finding range (%" PRIu64 ", %" PRIu64 "] \n", min, max);
+	min = min < 1?1:min;
+
+//	util_printf("Finding range (%" PRIu64 ", %" PRIu64 "] \n", min, max);
 
 	while (iter > min) {
 		uint64_t sqrt_max = (uint64_t) sqrt(iter) + 1;
@@ -29,30 +49,37 @@ static void find_prime_nbr(uint64_t min, uint64_t max, array * const ret)
 		}
 
 		if (i == sqrt_max) {
-			util_printf("Found prime number: %" PRIu64 "\n", iter);
+			;
+//			util_printf("Found prime number: %" PRIu64 "\n", iter);
 //			array_append(ret, iter);
 		} else 
 			;
 
-		iter%2? iter-=2: iter--;
+		if (iter == 3) {
+			iter--;
+		} else {
+			iter%2? iter-=2: iter--;
+		}
 	}
 
-	util_printf("%s", "===> Cycle done.\n" );
+//	util_printf("===> (%" PRIu64 ", %" PRIu64 "] done.\n", min, max);
 
 }
 
 static void* worker_thread(void* param)
 {
-	task_queue *tq = (task_queue*)param;
+	thread_params *tp = (thread_params*) param;
+	task_queue *tq = tp->tq;
+	array *result = tp->result;
 	range r;
 	r.len = 1;
-	util_printf("%s", "Thread started!\n");
+//	util_printf("%s", "Thread started!\n");
 	while(true) {
 		r = tq_get_task(tq);
 		if (r.len <= 0)
 			break;
 //		util_printf("Get task from (%" PRIu64 ", %" PRIu64 "]\n", r.start - r.len, r.start );
-		find_prime_nbr(r.start - r.len, r.start, NULL);
+		find_prime_nbr(r.start - r.len, r.start, result);
 		sleep(1);
 	};
 
@@ -62,27 +89,38 @@ static void* worker_thread(void* param)
 
 int main(int argc, char* argv[])
 {
-	int i;
-	uint8_t cpu_nbr = (uint8_t) sysconf(_SC_NPROCESSORS_ONLN);
+	uint32_t i;
+	uint32_t cpu_nbr = (uint8_t) sysconf(_SC_NPROCESSORS_ONLN);
+	uint64_t start = UINT64_MAX, end = UINT64_MAX - 100;
+	uint32_t pace = 10;
+	uint32_t prime_nbr_count;
+	thread_params tp;
+	
 	task_queue tq;
-	uint64_t start = UINT64_MAX, end = UINT64_MAX - 1024;
-	uint32_t pace = 100;
+	array result;
 
-	printf("argc == %d\n", argc);
-
-	if (argc == 4) {	
+	if (argc == 5) {
 		sscanf(argv[1], "%" PRIu64, &start);
 		sscanf(argv[2], "%" PRIu64, &end);
 		sscanf(argv[3], "%" PRIu32, &pace);
+		sscanf(argv[4], "%" PRIu32, &cpu_nbr);
 	}
+
+	printf("start=%" PRIu64 ", end=%" PRIu64 ", pace=%" PRIu32 ", threads=%" PRIu32 "\n", start, end, pace, cpu_nbr);
+	
+	prime_nbr_count = estimate_prime_nbr_amount(end, start);
+	array_init(&result, prime_nbr_count);
 
 	pthread_t workers[cpu_nbr];
 
 	tq_init(&tq, start, end, pace);
 	
+	tp.result = &result;
+	tp.tq = &tq;
+	
 	for (i = 0; i < cpu_nbr; i++) {
 
-		if (pthread_create(workers + i, NULL, worker_thread, &tq)) {
+		if (pthread_create(workers + i, NULL, worker_thread, &tp)) {
 			util_printf("%s", "Error returned when creating a thread\n");
 			exit(EXIT_FAILURE);
 		}
@@ -91,6 +129,7 @@ int main(int argc, char* argv[])
 
 	for (i = 0; i < cpu_nbr; i++) 
 		pthread_join(workers[i], NULL);
-
+	tq_destroy(&tq);
+	array_destroy(&result);
 	return 0;
 }
