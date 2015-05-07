@@ -2,7 +2,6 @@
 #define __DISPATCHER_H__
 
 #include <pthread.h>
-#include <bits/pthreadtypes.h>
 #include <stdint.h>
 
 
